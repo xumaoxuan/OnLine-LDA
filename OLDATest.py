@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 import numpy as np
+import random
+from DataPreProcessing import DataPreProcessing
 class OLDAModel(object):
-    def __init__(self,docVector,word2id,K,b,a,delta,w,t,docs_count=1,iter_times=100,top_words_num=10,\
+    def __init__(self,docVector,word2id,K,b,a,delta,w,t,B,docs_count=1,iter_times=100,top_words_num=10,\
                  thetafile="data/file/theta.txt",phifile="data/file/phifile",Bfile="data/file/B.txt"):
-        self.docs=docs
+
 
         #
         # 模型参数
@@ -11,14 +13,14 @@ class OLDAModel(object):
         #
         self.docVector = docVector
         self.docs_count = docs_count
-        self.docs_length = len(docVector[0])
+        self.docs_length = len(docVector)
 
         self.K = K
 
         self.iter_times = iter_times
         self.top_words_num = top_words_num
         self.t=t
-        self.delta=np.array([delta])  #delta*1
+        self.w=np.array(w)  #delta*1
 
 
         self.thetafile = thetafile
@@ -27,16 +29,19 @@ class OLDAModel(object):
         #self.topNfile = topNfile
         #self.tassginfile = tassginfile
         #self.paramfile = paramfile
-
+        self.B=B
 
 
         #B
-        if t==1:
-            self.beta = np.full((self.K,self.docs_length,), b)   #K*V
-            self.B=np.zeros((self.K,self.docs_length,delta))    #K*V*delta
+        self.beta=0
+        if self.t==0:
+            self.beta = np.full((self.K,self.docs_length), b,dtype=float)   #K*V
+            #self.B=np.zeros((self.K,self.docs_length,delta),dtype=float)    #K*V*delta
         else:
+            self.beta = np.full((self.K, self.docs_length), b, dtype=float)
             for index,item in enumerate(self.B):
-                self.beta[index] = np.dot(item, delta.T).T
+                #print item.shape
+                self.beta[index] = np.dot(item, self.w)
         self.alpha = a
 
         # p,概率向量 double类型，存储采样的临时变量
@@ -111,12 +116,12 @@ class OLDAModel(object):
             self.ndsum[i] += 1
             return topic
 
-    def est(self):
+    def estimation(self):
 
         for x in xrange(self.iter_times):
             for i in xrange(self.docs_count):   #M*V
                 for j in xrange(self.docs_length):
-                    topic = self.sampling(i, j)
+                    topic = self.sampling(i,j)
                     self.Z[i][j] = topic
 
         self._theta()
@@ -135,8 +140,15 @@ class OLDAModel(object):
             self.phi[i] = (self.nw.T[i] + self.beta[i]) / (self.nwsum[i] +self.beta[i])
 
     def _B(self): #K*V*delta
-        for index,item in enumerate(self.B):
-            np.column_stack((item[:, 1:], self.phi(index)))
+        temp=[]  #trick
+        if self.t==0:
+            for index,item in enumerate(self.B):
+                temp.append(np.column_stack((item, self.phi[index])))
+            self.B=np.array(temp)
+        else:
+            for index,item in enumerate(self.B):
+                temp.append(np.column_stack((item[:, 1:], self.phi[index])))
+            self.B = np.array(temp)
 
 
 
@@ -148,15 +160,14 @@ class OLDAModel(object):
     def save(self):
 
         #保存theta文章-主题分布
-        with codecs.open(self.thetafile,'w') as f:
+        with open(self.thetafile,'w') as f:
             for x in xrange(self.docs_count):
                 for y in xrange(self.K):
                     f.write(str(self.theta[x][y]) + '\t')
                 f.write('\n')
 
         #保存phi词-主题分布
-
-        with codecs.open(self.phifile,'w') as f:
+        with open(self.phifile,'w') as f:
             for x in xrange(self.K):
                 for y in xrange(self.docs_length):
                     f.write(str(self.phi[x][y]) + '\t')
@@ -164,8 +175,14 @@ class OLDAModel(object):
 
 
         #sava evolutional matrix
-        with codecs.open(self.Bfile,'a+') as f:
+        with open(self.Bfile,'a+') as f:
             for x in xrange(self.K):
                 for y in xrange(self.docs_length):
                     f.write(str(self.B[x][y]) + '\t')
                 f.write('\n')
+
+
+    #def process(self):
+
+
+
