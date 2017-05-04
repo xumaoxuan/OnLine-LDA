@@ -6,7 +6,7 @@ import jieba.analyse
 import uniout
 
 
-class ReadBulletScreen(object):
+class BulletScreen(object):
     def __init__(self):
         self.lines=[]
         self.timelength=0
@@ -16,8 +16,8 @@ class ReadBulletScreen(object):
         #self.timelength = 18377
         #f = open("data/551683.txt", "r")
         #self.timelength = 6122
-        f = open("data/601124.txt", "r")
-        self.timelength = 9238
+        f = open("data/1993410.txt", "r")
+        self.timelength = 5640
         jieba.analyse.set_stop_words("stopWords.txt")
         lines = f.readlines()
         tempLine=[]
@@ -41,7 +41,7 @@ class ReadBulletScreen(object):
 
 
 if __name__=="__main__":
-     print ReadBulletScreen().read()
+     print BulletScreen().read()
 
 
 

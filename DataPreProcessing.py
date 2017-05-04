@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 import numpy
-import ReadBulletScreen
+from ReadBulletScreen import BulletScreen
 from collections import OrderedDict
+#from OLDATest import OLDAModel
 class Document(object):
     def __init__(self):
         self.words = []
@@ -11,18 +13,16 @@ class DataPreProcessing(object):
         self.docs_count = 0
         self.words_count = 0
         self.docs = []
-        self.word2id = {}
+
 
     def sliceWithTime(self,timeInterval):
-        lines,timeLength=ReadBulletScreen.ReadBulletScreen().read()
+        lines,timeLength=BulletScreen().read()
         preTime=0
         lastTime=preTime+timeInterval
         docSet=[]
-        #ins=0
         for index in xrange(int(timeLength/timeInterval)):
             doc = Document();
             docSet.append(doc)
-            #ins+=1
             while(len(lines)!=0):
                 if lines[0]["time"] <=lastTime:
                     doc.words.append(item for item in lines[0]["text"])
@@ -33,21 +33,35 @@ class DataPreProcessing(object):
                     break
             doc.length=len(doc.words)
             print doc.length
-            #print ins
-
-
         return docSet
+
+
 
     def preProcessing(self,timeInterval):
         docSet=self.sliceWithTime(timeInterval)
-        for doc in docSet:
-            pass
+        self.docs_count = len(docSet)
 
+        #share the same vocabulary
+        docVector = []
+        word2id = OrderedDict()
+        for index,doc in enumerate(docSet):
+            for word in doc.words:
+                if word in word2id:
+                    docVector[word2id.keys().index(word)]+=1
+                else:
+                    docVector.append(1)
+                    word2id[word]=0
+            OLDAModel([docVector],[word2id],K,beta,alpha,delta,[0.1,0.1],index)
+            #self.docs.append({"docVector":docVector,"word2id":word2id,"words_count":doc.length})
+
+
+
+        #instance=OLDAModel(DataPreProcessing().sliceWithTime(300))
 
 
 
 if __name__=="__main__":
-    print DataPreProcessing().sliceWithTime(900)
+     print DataPreProcessing().preProcessing(300)
 
 
 
