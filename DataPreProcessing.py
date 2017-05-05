@@ -29,13 +29,10 @@ class DataPreProcessing(object):
                     lastTime=preTime+timeInterval
                     break
             print len(doc)
-
         #print "End"
         #print docSet[0]
         #print len(docSet)
         return docSet
-
-
 
     def preProcessing(self,timeInterval,K,alpha,beta,delta):
         docSet=self.sliceWithTime(timeInterval)
