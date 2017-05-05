@@ -27,7 +27,7 @@ class BulletScreen(object):
             m=pattern.match(line)
             if m:
                 tempLine.append({"time":int(float(m.group(1).split(',')[0])), \
-                                   "text":[word  for word,flag in pseg.cut(m.group(2)) if flag in ["n","ns","v","vn","nr","vd","ng","i"]]
+                                   "text":[word  for word,flag in pseg.cut(m.group(2)) if flag in ["n","ns","v","vn","nr","i","l"]]
                                 })
 
         for index,item in enumerate(tempLine):
@@ -41,7 +41,7 @@ class BulletScreen(object):
 
 
 if __name__=="__main__":
-     print BulletScreen().read()
+     print ReadBulletScreen().read()
 
 
 

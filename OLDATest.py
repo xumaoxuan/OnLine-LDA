@@ -2,47 +2,31 @@
 import numpy as np
 import random
 from DataPreProcessing import DataPreProcessing
+from collections import OrderedDict
 class OLDAModel(object):
-    def __init__(self,docVector,word2id,K,b,a,delta,w,t,B,docs_count=1,iter_times=100,top_words_num=10,\
-                 thetafile="data/file/theta.txt",phifile="data/file/phifile",Bfile="data/file/B.txt"):
-
-
-        #
-        # 模型参数
-        # 聚类个数K，迭代次数iter_times,每个类特征词个数top_words_num,超参数α（alpha） β(beta)
-        #
-        self.docVector = docVector
-        self.docs_count = docs_count
-        self.docs_length = len(docVector)
-
-        self.K = K
-
-        self.iter_times = iter_times
-        self.top_words_num = top_words_num
-        self.t=t
-        self.w=np.array(w)  #delta*1
-
+    def __init__(self,K,a,b,delta,w,docs_count=1,iter_times=100,top_words_num=10,\
+                 thetafile="data/file/theta.txt",phifile="data/file/phi.txt",Bfile="data/file/B.txt"):
 
         self.thetafile = thetafile
         self.phifile = phifile
-        self.Bfile=Bfile
-        #self.topNfile = topNfile
-        #self.tassginfile = tassginfile
-        #self.paramfile = paramfile
-        self.B=B
+        self.Bfile = Bfile
+        self.K = K
+        self.iter_times = iter_times
+        self.top_words_num = top_words_num
+        self.w = np.array(w)
+        self.alpha=a
+        self.b=b
+        self.docs_count = 1
+        self.delta=delta
 
 
-        #B
-        self.beta=0
-        if self.t==0:
-            self.beta = np.full((self.K,self.docs_length), b,dtype=float)   #K*V
-            #self.B=np.zeros((self.K,self.docs_length,delta),dtype=float)    #K*V*delta
-        else:
-            self.beta = np.full((self.K, self.docs_length), b, dtype=float)
-            for index,item in enumerate(self.B):
-                #print item.shape
-                self.beta[index] = np.dot(item, self.w)
-        self.alpha = a
+
+
+    def initialize(self):
+
+
+
+
 
         # p,概率向量 double类型，存储采样的临时变量
         # nw,词word在主题topic上的分布
@@ -52,27 +36,25 @@ class OLDAModel(object):
 
 
         self.p = np.zeros(self.K)
-        self.nw = np.zeros((self.docs_length, self.K))        # V*K
-        self.nwsum = np.zeros(self.K)   # 1*K
-        self.nd = np.zeros((self.docs_count,self.K))    #M*K
-        self.ndsum = np.zeros(self.docs_count)    #1*M
+        self.nw = np.zeros((self.docs_length, self.K))  # V*K
+        self.nwsum = np.zeros(self.K)  # 1*K
+        self.nd = np.zeros((self.docs_count, self.K))  # M*K
+        self.ndsum = np.zeros(self.docs_count)  # 1*M
         self.Z = np.array(
             [[0 for y in xrange(self.docs_length)] for x in xrange(self.docs_count)])  # M*doc.size()，文档中词的主题分布  M*V
 
         # 随机先分配类型
-        for x in xrange(len(self.Z)):   #M*V
-            self.ndsum[x] = np.sum(docVector[x])
+        for x in xrange(len(self.Z)):  # M*V
+            self.ndsum[x] = np.sum(self.docVector[x])
             for y in xrange(self.docs_length):
-
                 topic = random.randint(0, self.K - 1)
                 self.Z[x][y] = topic
-                self.nw[y][topic] += 1  #caveat
+                self.nw[y][topic] += 1  # caveat
                 self.nd[x][topic] += 1
                 self.nwsum[topic] += 1
 
-        self.theta = np.array([[0.0 for y in xrange(self.K)] for x in xrange(self.docs_count)])  #M*K
-        self.phi = np.array([[0.0 for y in xrange(self.docs_length)] for x in xrange(self.K)])   #K*V
-
+        self.theta = np.array([[0.0 for y in xrange(self.K)] for x in xrange(self.docs_count)])  # M*K
+        self.phi = np.array([[0.0 for y in xrange(self.docs_length)] for x in xrange(self.K)])  # K*V
 
 
     def sampling(self, i, j):   #M*V
@@ -128,7 +110,7 @@ class OLDAModel(object):
         self._phi()
         self._B()
         self.save()
-        return self.B
+
 
 
     def _theta(self):    #M*K
@@ -182,7 +164,69 @@ class OLDAModel(object):
                 f.write('\n')
 
 
-    #def process(self):
+
+    def augumentedB(self):
+        while self.B.shape[1] < self.docs_length:
+            temp = []
+            for index, item in enumerate(self.B):
+                temp.append(np.row_stack((item, np.zeros(self.delta + 1))))
+            self.B = np.array(temp)
 
 
 
+    def process(self,timeInterval):
+        docSet = DataPreProcessing().sliceWithTime(timeInterval)
+
+        # share the same vocabulary
+        docVector = []
+        word2id = OrderedDict()
+
+        for index, doc in enumerate(docSet):
+
+            self.t=index
+
+            for word in doc.words:
+                if word in word2id:
+                    docVector[word2id.keys().index(word)] += 1
+                else:
+                    docVector.append(1)
+                    word2id[word] = 0
+
+
+            self.docVector = docVector
+            self.docs_length = len(docVector)
+            print self.docs_length
+
+            # initialize B and beta
+            if self.t == 0:
+                self.beta = np.full((self.K, self.docs_length), self.b, dtype=float)  # K*V
+                self.B = np.zeros((self.K, self.docs_length, delta), dtype=float)  # K*V*delta
+            else:
+
+                self.beta = np.full((self.K, self.docs_length), self.b, dtype=float)
+                self.augumentedB()
+                for index, item in enumerate(self.B):
+                    print "hoho"
+                    print item.shape
+                    print "haha"
+                    print self.beta.shape
+                    self.beta[index] = np.dot(item, self.w)
+
+
+            # These words are assumed to have 0 count in φ for all topics in previous streams,so add 0-vector to the evolutional matrix B
+
+
+
+            self.initialize()    #initialize the parameters
+            self.estimation()
+
+
+if __name__=="__main__":
+
+    K=6
+    alpha=1
+    beta=0.1
+    delta=1
+    timeInterval=1200
+    olda=OLDAModel(K, alpha, beta, delta, [0.3, 0.7]) # assume all the elements of w vector sum to one
+    olda.process(timeInterval)
