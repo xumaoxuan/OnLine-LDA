@@ -6,8 +6,9 @@ import numpy as np
 import random
 from DataPreProcessing import DataPreProcessing
 from collections import OrderedDict
+from scipy import *
 class OLDAModel(object):
-    def __init__(self,K,a,b,delta,w,docs_count=1,iter_times=1000,top_words_num=10,\
+    def __init__(self,K,a,b,delta,w,CL,docs_count=1,iter_times=1000,top_words_num=10,\
                  thetafile="data/file/theta.txt",phifile="data/file/phi.txt",Bfile="data/file/B.txt",topNDocument="data/file"):
 
         self.thetafile = thetafile
@@ -24,6 +25,8 @@ class OLDAModel(object):
         self.docs_count = 1
         self.delta=delta
         self.topNDocument
+        self.CL=CL
+        self.Dist=0
 
 
     def initialize(self):
@@ -57,6 +60,31 @@ class OLDAModel(object):
 
         self.theta = np.array([[0.0 for y in xrange(self.K)] for x in xrange(self.docs_count)])  # M*K
         self.phi = np.array([[0.0 for y in xrange(self.docs_length)] for x in xrange(self.K)])  # K*V
+
+
+    def augumentedB(self):
+        while self.B.shape[1] < self.docs_length:
+            temp = []
+            for index, item in enumerate(self.B):
+                temp.append(np.row_stack((item, np.zeros(self.delta + 1))))
+            self.B = np.array(temp)
+    def augumentedBeta(self):
+        print "haha"
+        print self.beta.shape
+        self.beta=(np.column_stack((self.beta, np.zeros((self.beta.shape[0],self.docs_length-self.beta.shape[1])))))
+        print self.beta.shape
+        print self.docs_length
+
+    def initializeBandBeta(self):
+        # initialize B and beta
+        if self.t == 0:
+            self.beta = np.full((self.K, self.docs_length), self.b, dtype=float)  # K*V
+            self.B = np.zeros((self.K, self.docs_length, self.delta), dtype=float)  # K*V*delta
+        else:
+            self.augumentedBeta()
+            self.augumentedB()
+            for index, item in enumerate(self.B):
+                self.beta[index] = np.dot(item, self.w)
 
 
     def sampling(self, i, j):   #M*V
@@ -112,6 +140,9 @@ class OLDAModel(object):
         self.topNword()
         self._B()
 
+        self._edetect()
+
+
 
     def topNword(self):
         self._phi()
@@ -147,9 +178,26 @@ class OLDAModel(object):
 
 
 
+    def _edetect(self):
+        if self.t>1:
+            Dist=np.array(self.K)
+            for i in xrange(self.K):
+                Dist[i]=self.symmetricalKL(self.B[i][0],self.B[i][1])
+
+
+
+
+
+
+
     #self.p = (self.nw[j] + self.beta.T[j]) / (self.nwsum + Vbeta) * \
     #                 (self.nd[i] + self.alpha) / (self.ndsum[i] + Kalpha)
 
+    def asymmetricKL(self,P, Q):
+        return sum(P * log(P / Q))  # calculate the kl divergence between P and Q
+
+    def symmetricalKL(self,P, Q):
+        return (asymmetricKL(P, Q) + asymmetricKL(Q, P)) / 2.00
 
     def saveTopNWord(self,topN):
         with open(str(self.topNDocument) + "/" + str(self.t+1) + ".txt", 'w') as f:
@@ -185,29 +233,7 @@ class OLDAModel(object):
 
 
 
-    def augumentedB(self):
-        while self.B.shape[1] < self.docs_length:
-            temp = []
-            for index, item in enumerate(self.B):
-                temp.append(np.row_stack((item, np.zeros(self.delta + 1))))
-            self.B = np.array(temp)
-    def augumentedBeta(self):
-        print "haha"
-        print self.beta.shape
-        self.beta=(np.column_stack((self.beta, np.zeros((self.beta.shape[0],self.docs_length-self.beta.shape[1])))))
-        print self.beta.shape
-        print self.docs_length
 
-    def initializeBandBeta(self):
-        # initialize B and beta
-        if self.t == 0:
-            self.beta = np.full((self.K, self.docs_length), self.b, dtype=float)  # K*V
-            self.B = np.zeros((self.K, self.docs_length, self.delta), dtype=float)  # K*V*delta
-        else:
-            self.augumentedBeta()
-            self.augumentedB()
-            for index, item in enumerate(self.B):
-                self.beta[index] = np.dot(item, self.w)
 
 
     def process(self,timeInterval):
@@ -242,6 +268,8 @@ class OLDAModel(object):
 
 
 
+
+
 if __name__=="__main__":
 
     K=5
@@ -249,5 +277,6 @@ if __name__=="__main__":
     beta=0.1
     delta=1
     timeInterval=1200
-    olda=OLDAModel(K, alpha, beta, delta, [0.3, 0.7]) # assume all the elements of w vector sum to one
+    CL=10
+    olda=OLDAModel(K, alpha, beta, delta, [0.3, 0.7],CL) # assume all the elements of w vector sum to one
     olda.process(timeInterval)
