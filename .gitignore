@@ -1,6 +1,6 @@
 /test
 /data/file
-/data/.DS_Storegit
+/data/.DS_Store
 final3_CreateVocabList_bayes.py
 *.pyc
 
