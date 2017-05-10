@@ -1,3 +1,4 @@
-test
-data
+/test
+/data/file
 findal3_CreateVocabList_bayes.py
+*.pyc
