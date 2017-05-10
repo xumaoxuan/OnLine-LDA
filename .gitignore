@@ -1,3 +1,4 @@
-test
-data
-findal3_CreateVocabList_bayes.py
+/test
+/data/file
+final3_CreateVocabList_bayes.py
+*.pyc
