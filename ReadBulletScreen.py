@@ -18,7 +18,7 @@ class BulletScreen(object):
         #self.timelength = 6122
         f = open("data/1993410.txt", "r")
         self.timelength = 5640
-        jieba.analyse.set_stop_words("stopWords.txt")
+        jieba.analyse.set_stop_words("data/stopWords.txt")
         lines = f.readlines()
         tempLine=[]
 
