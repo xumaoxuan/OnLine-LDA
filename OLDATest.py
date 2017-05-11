@@ -6,16 +6,14 @@ import numpy as np
 import random
 from DataPreProcessing import DataPreProcessing
 from collections import OrderedDict
-from scipy import *
 class OLDAModel(object):
-    def __init__(self,K,a,b,delta,w,CL,docs_count=1,iter_times=1000,top_words_num=10,\
+    def __init__(self,K,a,b,delta,w,CL,docs_count=1,iter_times=100,top_words_num=10,\
                  thetafile="data/file/theta.txt",phifile="data/file/phi.txt",Bfile="data/file/B.txt",topNDocument="data/file"):
 
         self.thetafile = thetafile
         self.phifile = phifile
         self.Bfile = Bfile
         self.topNDocument=topNDocument
-
         self.K = K
         self.iter_times = iter_times
         self.top_words_num = top_words_num
@@ -26,16 +24,13 @@ class OLDAModel(object):
         self.delta=delta
         self.topNDocument
         self.CL=CL
-        self.Dist=0
+        self.Dist=np.zeros((self.delta,self.K),dtype=float)
+
+
 
 
     def initialize(self):
 
-        # p,概率向量 double类型，存储采样的临时变量
-        # nw,词word在主题topic上的分布
-        # nwsum,每各topic的词的总数
-        # nd,每个doc中各个topic的词的总数
-        # ndsum,每各doc中词的总数
 
         self.p = np.zeros(self.K)
         self.nw = np.zeros((self.docs_length, self.K))  # V*K
@@ -69,7 +64,7 @@ class OLDAModel(object):
                 temp.append(np.row_stack((item, np.zeros(self.delta + 1))))
             self.B = np.array(temp)
     def augumentedBeta(self):
-        print "haha"
+
         print self.beta.shape
         self.beta=(np.column_stack((self.beta, np.zeros((self.beta.shape[0],self.docs_length-self.beta.shape[1])))))
         print self.beta.shape
@@ -98,19 +93,15 @@ class OLDAModel(object):
             self.nwsum[topic] -= 1
             self.ndsum[i] -= 1
 
-            # Vbeta = self.dpre.words_count * self.beta
-            # Kalpha = self.K * self.alpha
-            # self.p = (self.nw[word] + self.beta) / (self.nwsum + Vbeta) * \
-            #          (self.nd[i] + self.alpha) / (self.ndsum[i] + Kalpha)
 
             #1*k
             self.Vbeta=np.sum(self.beta,axis=1)
+
             Kalpha = self.K * self.alpha
 
             self.p = (self.nw[j] + self.beta.T[j]) / (self.nwsum + self.Vbeta) * \
                          (self.nd[i] + self.alpha) / (self.ndsum[i] + Kalpha)
 
-            #self.phi[i] = (self.nw.T[i] + self.beta[i]) / (self.nwsum[i] + np.sum(self.beta, axis=1))
 
 
             for k in xrange(1, self.K):
@@ -139,7 +130,6 @@ class OLDAModel(object):
 
         self.topNword()
         self._B()
-
         self._edetect()
 
 
@@ -150,9 +140,8 @@ class OLDAModel(object):
         for item in self.phi:
             temp={key:item[index] for index,key in enumerate(self.word2id.keys())}
             temp2=sorted(temp.items(),key=lambda d:d[1],reverse=True)
-            #print temp2
             topN.append([temp2[i][0]for i in xrange(self.top_words_num)])
-        #print topN
+
         self.saveTopNWord(topN)
 
 
@@ -163,41 +152,42 @@ class OLDAModel(object):
 
     def _phi(self):  #K*V
         for i in xrange(self.K):
-            self.phi[i] = (self.nw.T[i] + self.beta[i]) / (self.nwsum[i] +self.beta[i])
+            self.phi[i] = (self.nw.T[i] + self.beta[i]) / (self.nwsum[i] + np.sum(self.beta[i]))
 
     def _B(self): #K*V*delta
         temp=[]  #trick
         if self.t==0:
             for index,item in enumerate(self.B):
                 temp.append(np.column_stack((item, self.phi[index])))
-            self.B=np.array(temp)
+            self.B=np.array(temp,dtype=float)
         else:
             for index,item in enumerate(self.B):
                 temp.append(np.column_stack((item[:, 1:], self.phi[index])))
-            self.B = np.array(temp)
+            self.B = np.array(temp,dtype=float)
 
 
 
     def _edetect(self):
         if self.t>1:
-            Dist=np.array(self.K)
-            for i in xrange(self.K):
-                Dist[i]=self.symmetricalKL(self.B[i][0],self.B[i][1])
+            for i in xrange(self.delta):
+                for k in xrange(self.K):
+                    self.Dist[i][k] =self.symmetricalKL(self.B[k].T[self.delta-1],self.B[k].T[self.delta])
+            #print self.Dist
 
 
+    def asymmetricKL(self,a, b):
+         #return np.sum(np.where((a!= 0 )&(b !=0), a * np.log(a / b), 0))  # calculate the kl divergence between P and Q
+         total=0
+         for index,i in enumerate(a):
+             if a[index]!=0 and b[index]!=0:
+                  total+=a[index] *np.log(a[index]/b[index])
 
+         return total
 
-
-
-
-    #self.p = (self.nw[j] + self.beta.T[j]) / (self.nwsum + Vbeta) * \
-    #                 (self.nd[i] + self.alpha) / (self.ndsum[i] + Kalpha)
-
-    def asymmetricKL(self,P, Q):
-        return sum(P * log(P / Q))  # calculate the kl divergence between P and Q
 
     def symmetricalKL(self,P, Q):
-        return (asymmetricKL(P, Q) + asymmetricKL(Q, P)) / 2.00
+        return (self.asymmetricKL(P, Q) + self.asymmetricKL(Q, P)) / 2.00
+
 
     def saveTopNWord(self,topN):
         with open(str(self.topNDocument) + "/" + str(self.t+1) + ".txt", 'w') as f:
@@ -233,17 +223,12 @@ class OLDAModel(object):
 
 
 
-
-
-
     def process(self,timeInterval):
         docSet = DataPreProcessing().sliceWithTime(timeInterval)
 
-        # share the same vocabulary
-        #docVector = []
+
         word2id = OrderedDict()
         print len(docSet)
-        print "what"
         for index, doc in enumerate(docSet):
             self.t=index
             for word in doc:
@@ -258,7 +243,9 @@ class OLDAModel(object):
             self.initializeBandBeta()
             self.initialize()    #initialize the parameters
             self.estimation()
+            print "Vbeta"
             print self.Vbeta
+            #print self.beta[0]
 
 
         #output
@@ -276,7 +263,7 @@ if __name__=="__main__":
     alpha=10
     beta=0.1
     delta=1
-    timeInterval=1200
+    timeInterval=2000
     CL=10
-    olda=OLDAModel(K, alpha, beta, delta, [0.3, 0.7],CL) # assume all the elements of w vector sum to one
+    olda=OLDAModel(K, alpha, beta, delta, [0.5, 0.5],CL) # assume all the elements of w vector sum to one
     olda.process(timeInterval)

@@ -12,12 +12,11 @@ class BulletScreen(object):
         self.timelength=0
 
     def read(self):
-        #f = open("data/515862.txt", "r")
-        #self.timelength = 18377
-        #f = open("data/551683.txt", "r")
-        #self.timelength = 6122
-        f = open("data/1993410.txt", "r")
-        self.timelength = 5640
+
+        # f = open("data/1993410.txt", "r")
+        # self.timelength = 5640
+        f = open("data/2152134.txt", "r")
+        self.timelength = 12306
         jieba.analyse.set_stop_words("data/stopWords.txt")
         lines = f.readlines()
         tempLine=[]
@@ -27,7 +26,7 @@ class BulletScreen(object):
             m=pattern.match(line)
             if m:
                 tempLine.append({"time":int(float(m.group(1).split(',')[0])), \
-                                   "text":[word  for word,flag in pseg.cut(m.group(2)) if flag in ["n","ns","v","vn","nr"]]
+                                   "text":[word  for word,flag in pseg.cut(m.group(2)) if flag in ["n","ns","v","vn"]]
                                 })
 
         for index,item in enumerate(tempLine):

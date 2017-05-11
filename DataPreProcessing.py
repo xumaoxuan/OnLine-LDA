@@ -2,6 +2,7 @@
 import numpy as np
 from ReadBulletScreen import BulletScreen
 from collections import OrderedDict
+from scipy import *
 
 
 class DataPreProcessing(object):
@@ -29,9 +30,7 @@ class DataPreProcessing(object):
                     lastTime=preTime+timeInterval
                     break
             print len(doc)
-        #print "End"
-        #print docSet[0]
-        #print len(docSet)
+
         return docSet
 
     def preProcessing(self,timeInterval,K,alpha,beta,delta):
@@ -49,18 +48,7 @@ class DataPreProcessing(object):
                 else:
                     docVector.append(1)
                     word2id[word]=0
-            # if index==0:  #initialize
-            #     B = np.zeros((K,len(docVector), delta), dtype=float)
-            #
-            # #These words are assumed to have 0 count in φ for all topics in previous streams.
-            # while B.shape[1]<len(docVector):
-            #     temp=[]
-            #     for index,item in enumerate(B):
-            #         temp.append(np.row_stack((item,np.zeros(delta+1))))
-            #     B=np.array(temp)
-            #
-            # olda=OLDAModel(docVector,word2id,K,beta,alpha,delta,[0.3,0.7],index,B)   #assume all the elements of w vector sum to one
-            # B=olda.estimation()
+
 
     def testPrecessing(self,timeInterval):
         docSet = self.sliceWithTime(timeInterval)
@@ -69,7 +57,7 @@ class DataPreProcessing(object):
 
         for index, doc in enumerate(docSet):
             for word in doc:
-                #print word
+
                 if word in word2id:
                     docVector[word2id.keys().index(word)] += 1
                 else:
