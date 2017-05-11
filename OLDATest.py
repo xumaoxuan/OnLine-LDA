@@ -7,8 +7,8 @@ import random
 from DataPreProcessing import DataPreProcessing
 from collections import OrderedDict
 class OLDAModel(object):
-    def __init__(self,K,a,b,delta,w,CL,docs_count=1,iter_times=100,top_words_num=10,\
-                 thetafile="data/file/theta.txt",phifile="data/file/phi.txt",Bfile="data/file/B.txt",topNDocument="data/file"):
+    def __init__(self,K,a,b,delta,w,docs_count=1,iter_times=100,top_words_num=10,\
+                 thetafile="data/file/theta.txt",phifile="data/file/phi.txt",Bfile="data/file/B.txt",topNDocument="data/file",CL=0.95):
 
         self.thetafile = thetafile
         self.phifile = phifile
@@ -51,8 +51,6 @@ class OLDAModel(object):
                 self.nwsum[topic] += 1
 
 
-
-
         self.theta = np.array([[0.0 for y in xrange(self.K)] for x in xrange(self.docs_count)])  # M*K
         self.phi = np.array([[0.0 for y in xrange(self.docs_length)] for x in xrange(self.K)])  # K*V
 
@@ -86,13 +84,10 @@ class OLDAModel(object):
 
             topic = self.Z[i][j]
 
-
             self.nw[j][topic] -= 1   #caveat   word=j
-
             self.nd[i][topic] -= 1
             self.nwsum[topic] -= 1
             self.ndsum[i] -= 1
-
 
             #1*k
             self.Vbeta=np.sum(self.beta,axis=1)
@@ -102,6 +97,8 @@ class OLDAModel(object):
             self.p = (self.nw[j] + self.beta.T[j]) / (self.nwsum + self.Vbeta) * \
                          (self.nd[i] + self.alpha) / (self.ndsum[i] + Kalpha)
 
+            # self.p = (self.nw[word] + self.beta) / (self.nwsum + Vbeta) * \
+            #          (self.nd[i] + self.alpha) / (self.ndsum[i] + Kalpha)
 
 
             for k in xrange(1, self.K):
@@ -153,6 +150,8 @@ class OLDAModel(object):
     def _phi(self):  #K*V
         for i in xrange(self.K):
             self.phi[i] = (self.nw.T[i] + self.beta[i]) / (self.nwsum[i] + np.sum(self.beta[i]))
+
+   
 
     def _B(self): #K*V*delta
         temp=[]  #trick
@@ -243,17 +242,12 @@ class OLDAModel(object):
             self.initializeBandBeta()
             self.initialize()    #initialize the parameters
             self.estimation()
-            print "Vbeta"
-            print self.Vbeta
-            #print self.beta[0]
 
 
         #output
         self._theta()
         #self._phi()
         self.save()
-
-
 
 
 
@@ -265,5 +259,5 @@ if __name__=="__main__":
     delta=1
     timeInterval=2000
     CL=10
-    olda=OLDAModel(K, alpha, beta, delta, [0.5, 0.5],CL) # assume all the elements of w vector sum to one
+    olda=OLDAModel(K, alpha, beta, delta, [0.2, 0.8],CL) # assume all the elements of w vector sum to one
     olda.process(timeInterval)

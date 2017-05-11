@@ -63,11 +63,14 @@ class DataPreProcessing(object):
                 else:
                     docVector.append(1)
                     word2id[word] = 0
+            print word2id.keys()
+            print docVector
+            print len(docVector)
 
-        print word2id.keys()
-        print len(word2id.keys())
-        print docVector
-        print len(docVector)
+        # print word2id.keys()
+        # print len(word2id.keys())
+        # print docVector
+        # print len(docVector)
 
 
 if __name__=="__main__":
