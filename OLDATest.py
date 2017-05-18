@@ -7,7 +7,7 @@ import random
 from DataPreProcessing import DataPreProcessing
 from collections import OrderedDict
 class OLDAModel(object):
-    def __init__(self,K,a,b,delta,w,docs_count=1,iter_times=100,top_words_num=10,\
+    def __init__(self,K,a,b,delta,w,docs_count=1,iter_times=500,top_words_num=10,\
                  thetafile="data/file/theta.txt",phifile="data/file/phi.txt",Bfile="data/file/B.txt",topNDocument="data/file",CL=0.95):
 
         self.thetafile = thetafile
@@ -96,9 +96,6 @@ class OLDAModel(object):
 
             self.p = (self.nw[j] + self.beta.T[j]) / (self.nwsum + self.Vbeta) * \
                          (self.nd[i] + self.alpha) / (self.ndsum[i] + Kalpha)
-
-            # self.p = (self.nw[word] + self.beta) / (self.nwsum + Vbeta) * \
-            #          (self.nd[i] + self.alpha) / (self.ndsum[i] + Kalpha)
 
 
             for k in xrange(1, self.K):
@@ -253,11 +250,11 @@ class OLDAModel(object):
 
 if __name__=="__main__":
 
-    K=5
+    K=20
     alpha=10
     beta=0.1
     delta=1
-    timeInterval=2000
+    timeInterval=700
     CL=10
-    olda=OLDAModel(K, alpha, beta, delta, [0.2, 0.8],CL) # assume all the elements of w vector sum to one
+    olda=OLDAModel(K, alpha, beta, delta, [0.4, 0.6],CL) # assume all the elements of w vector sum to one
     olda.process(timeInterval)

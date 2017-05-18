@@ -13,10 +13,10 @@ class BulletScreen(object):
 
     def read(self):
 
-        # f = open("data/1993410.txt", "r")
-        # self.timelength = 5640
-        f = open("data/2152134.txt", "r")
-        self.timelength = 12306
+        f = open("data/1993410.txt", "r")
+        self.timelength = 5640
+        #f = open("data/2152134.txt", "r")
+        # self.timelength = 12306
         jieba.analyse.set_stop_words("data/stopWords.txt")
         lines = f.readlines()
         tempLine=[]
