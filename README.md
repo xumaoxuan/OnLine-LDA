@@ -8,5 +8,5 @@
 
 * Due to the limitation of the corpus,On-Line LDA model don't work well on task of my project.But it has inspired me a lot and I spend few days to implement the code. 
 
-* However,not all the code has been implemented.Feel free to contact me if you find any problems in this package.
+* However,not all the code has been implemented.Feel free to contact me if you have any problems in this package.
 

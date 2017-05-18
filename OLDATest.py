@@ -124,7 +124,7 @@ class OLDAModel(object):
 
         self.topNword()
         self._B()
-        self._edetect()
+        #self._edetect()
 
 
 
@@ -163,26 +163,26 @@ class OLDAModel(object):
 
 
 
-    def _edetect(self):
-        if self.t>1:
-            for i in xrange(self.delta):
-                for k in xrange(self.K):
-                    self.Dist[i][k] =self.symmetricalKL(self.B[k].T[self.delta-1],self.B[k].T[self.delta])
-            #print self.Dist
-
-
-    def asymmetricKL(self,a, b):
-         #return np.sum(np.where((a!= 0 )&(b !=0), a * np.log(a / b), 0))  # calculate the kl divergence between P and Q
-         total=0
-         for index,i in enumerate(a):
-             if a[index]!=0 and b[index]!=0:
-                  total+=a[index] *np.log(a[index]/b[index])
-
-         return total
-
-
-    def symmetricalKL(self,P, Q):
-        return (self.asymmetricKL(P, Q) + self.asymmetricKL(Q, P)) / 2.00
+    # def _edetect(self):
+    #     if self.t>1:
+    #         for i in xrange(self.delta):
+    #             for k in xrange(self.K):
+    #                 self.Dist[i][k] =self.symmetricalKL(self.B[k].T[self.delta-1],self.B[k].T[self.delta])
+    #         #print self.Dist
+    #
+    #
+    # def asymmetricKL(self,a, b):
+    #      #return np.sum(np.where((a!= 0 )&(b !=0), a * np.log(a / b), 0))  # calculate the kl divergence between P and Q
+    #      total=0
+    #      for index,i in enumerate(a):
+    #          if a[index]!=0 and b[index]!=0:
+    #               total+=a[index] *np.log(a[index]/b[index])
+    #
+    #      return total
+    #
+    #
+    # def symmetricalKL(self,P, Q):
+    #     return (self.asymmetricKL(P, Q) + self.asymmetricKL(Q, P)) / 2.00
 
 
     def saveTopNWord(self,topN):
@@ -256,5 +256,6 @@ if __name__=="__main__":
     delta=1
     timeInterval=700
     CL=10
-    olda=OLDAModel(K, alpha, beta, delta, [0.4, 0.6],CL) # assume all the elements of w vector sum to one
+    # assume all the elements of w vector sum to one
+    olda=OLDAModel(K, alpha, beta, delta, [0.4, 0.6],CL)
     olda.process(timeInterval)

@@ -67,19 +67,10 @@ class DataPreProcessing(object):
             print docVector
             print len(docVector)
 
-        # print word2id.keys()
-        # print len(word2id.keys())
-        # print docVector
-        # print len(docVector)
 
 
 if __name__=="__main__":
     timeInterval=1000
-    #K=10
-    #alpha=1
-    #beta=0.1
-    #delta=1
-    #DataPreProcessing().preProcessing(1000,K,alpha,beta,delta)
     DataPreProcessing().testPrecessing(timeInterval)
 
 
