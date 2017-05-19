@@ -12,5 +12,5 @@
 
 * However,not all the code has been implemented.Feel free to contact me if you have any problems in this package.
 
-How to run the code:
-    python OLDATest
+* How to run the code:
+       ``python OLDATest``
