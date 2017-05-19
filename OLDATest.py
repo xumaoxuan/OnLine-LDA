@@ -24,7 +24,7 @@ class OLDAModel(object):
         self.delta=delta
         self.topNDocument
         self.CL=CL
-        self.Dist=np.zeros((self.delta,self.K),dtype=float)
+        #self.Dist=np.zeros((self.delta,self.K),dtype=float)
 
 
 
@@ -151,7 +151,7 @@ class OLDAModel(object):
    
 
     def _B(self): #K*V*delta
-        temp=[]  #trick
+        temp=[]
         if self.t==0:
             for index,item in enumerate(self.B):
                 temp.append(np.column_stack((item, self.phi[index])))

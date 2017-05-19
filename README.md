@@ -8,5 +8,9 @@
 
 * Due to the limitation of the corpus,On-Line LDA model don't work well on task of my project.But it has inspired me a lot and I spend few days to implement the code. 
 
+* The original goal of my project aims to use dynamic topic model to analysis topic through Crowdsourced Time-Sync Comments(Bullet-Screen)  which was segmented by timeslice.
+
 * However,not all the code has been implemented.Feel free to contact me if you have any problems in this package.
 
+How to run the code:
+    python OLDATest

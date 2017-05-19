@@ -7,9 +7,7 @@ from scipy import *
 
 class DataPreProcessing(object):
     def __init__(self):
-        self.docs_count = 0
-        self.words_count = 0
-        self.docs = []
+        pass
 
 
     def sliceWithTime(self,timeInterval):
@@ -32,22 +30,6 @@ class DataPreProcessing(object):
             print len(doc)
 
         return docSet
-
-    def preProcessing(self,timeInterval,K,alpha,beta,delta):
-        docSet=self.sliceWithTime(timeInterval)
-        self.docs_count = len(docSet)
-
-        #share the same vocabulary
-        docVector = []
-        word2id = OrderedDict()
-
-        for index,doc in enumerate(docSet):
-            for word in doc.words:
-                if word in word2id:
-                    docVector[word2id.keys().index(word)]+=1
-                else:
-                    docVector.append(1)
-                    word2id[word]=0
 
 
     def testPrecessing(self,timeInterval):
