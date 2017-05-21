@@ -37,12 +37,15 @@ class OLDAModel(object):
         self.nwsum = np.zeros(self.K)  # 1*K
         self.nd = np.zeros((self.docs_count, self.K))  # M*K
         self.ndsum = np.zeros(self.docs_count)  # 1*M
-        self.Z = np.array(
-            [[0 for y in xrange(self.docs_length)] for x in xrange(self.docs_count)])  # M*doc.size()，文档中词的主题分布  M*V
 
-        # 随机先分配类型
+        # M*doc.size()，文档中词的主题分布  M*V
+        self.Z = np.array(
+            [[0 for y in xrange(self.docs_length)] for x in xrange(self.docs_count)])
+
+        #随机分配主题
+        #initialize each word with topic randomly
         for x in xrange(self.docs_count):  # M*V  #caveat  M = 1
-            self.ndsum[x] = np.sum(self.word2id.values())   # caveat only has one document
+            self.ndsum[x] = np.sum(self.word2id.values())   # caveat there is only one doc
             for y in xrange(self.docs_length):
                 topic = random.randint(0, self.K - 1)
                 self.Z[x][y] = topic
@@ -61,12 +64,13 @@ class OLDAModel(object):
             for index, item in enumerate(self.B):
                 temp.append(np.row_stack((item, np.zeros(self.delta + 1))))
             self.B = np.array(temp)
+
+
     def augumentedBeta(self):
 
-        print self.beta.shape
         self.beta=(np.column_stack((self.beta, np.zeros((self.beta.shape[0],self.docs_length-self.beta.shape[1])))))
-        print self.beta.shape
-        print self.docs_length
+        print "beta shape: " + str(self.beta.shape)
+        print "doc_length: %s " % self.docs_length
 
     def initializeBandBeta(self):
         # initialize B and beta
@@ -120,9 +124,10 @@ class OLDAModel(object):
                     topic = self.sampling(i,j)
                     self.Z[i][j] = topic
 
-            #display current Timeslice top-N topic
 
+        #display current Timeslice top-N topic
         self.topNword()
+
         self._B()
         #self._edetect()
 
@@ -195,14 +200,14 @@ class OLDAModel(object):
 
     def save(self):
 
-        #保存theta文章-主题分布
+        #save theta doc-topic distribution
         with open(self.thetafile,'w') as f:
             for x in xrange(self.docs_count):
                 for y in xrange(self.K):
                     f.write(str(self.theta[x][y]) + '\t')
                 f.write('\n')
 
-        #保存phi词-主题分布
+        #save phi topic-word distribution
         with open(self.phifile,'w') as f:
             for x in xrange(self.K):
                 for y in xrange(self.docs_length):
@@ -224,7 +229,7 @@ class OLDAModel(object):
 
 
         word2id = OrderedDict()
-        print len(docSet)
+        print "docsize: %s " % len(docSet)
         for index, doc in enumerate(docSet):
             self.t=index
             for word in doc:
@@ -235,13 +240,13 @@ class OLDAModel(object):
 
             self.docs_length = len(word2id)
             self.word2id=word2id
-            print self.docs_length
+            print "doc_length: %s " % self.docs_length
             self.initializeBandBeta()
             self.initialize()    #initialize the parameters
             self.estimation()
 
 
-        #output
+        #output file
         self._theta()
         #self._phi()
         self.save()
@@ -251,7 +256,7 @@ class OLDAModel(object):
 if __name__=="__main__":
 
     K=20
-    alpha=10
+    alpha=50/K
     beta=0.1
     delta=1
     timeInterval=700
