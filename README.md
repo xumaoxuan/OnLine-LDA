@@ -10,7 +10,13 @@
 
 * The original goal of my project aims to use dynamic topic model to analysis topic through Crowdsourced Time-Sync Comments(Bullet-Screen)  which was segmented by timeslice.
 
-* However,not all the code has been implemented.Feel free to contact me if you have any problems in this package.
+* However,not all the code has been implemented(the KL-divergence of the evolutional matrix was not implemented).
 
-* How to run the code:
-       ``python OLDATest``
+## Requirements
+
+* numpy
+* jieba
+* uniout
+
+## Author
+  WindWard <xuan619@sina.com>
