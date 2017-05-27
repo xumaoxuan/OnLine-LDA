@@ -2,7 +2,7 @@
 import numpy as np
 from ReadBulletScreen import BulletScreen
 from collections import OrderedDict
-from scipy import *
+
 
 
 class DataPreProcessing(object):
