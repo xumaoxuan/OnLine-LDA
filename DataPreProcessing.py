@@ -32,28 +32,28 @@ class DataPreProcessing(object):
         return docSet
 
 
-    def testPrecessing(self,timeInterval):
-        docSet = self.sliceWithTime(timeInterval)
-        docVector = []
-        word2id = OrderedDict()
-
-        for index, doc in enumerate(docSet):
-            for word in doc:
-
-                if word in word2id:
-                    docVector[word2id.keys().index(word)] += 1
-                else:
-                    docVector.append(1)
-                    word2id[word] = 0
-            print word2id.keys()
-            print docVector
-            print len(docVector)
+    # def testPrecessing(self,timeInterval):
+    #     docSet = self.sliceWithTime(timeInterval)
+    #     docVector = []
+    #     word2id = OrderedDict()
+    #
+    #     for index, doc in enumerate(docSet):
+    #         for word in doc:
+    #
+    #             if word in word2id:
+    #                 docVector[word2id.keys().index(word)] += 1
+    #             else:
+    #                 docVector.append(1)
+    #                 word2id[word] = 0
+    #         print word2id.keys()
+    #         print docVector
+    #         print len(docVector)
 
 
 
 if __name__=="__main__":
     timeInterval=1000
-    DataPreProcessing().testPrecessing(timeInterval)
+    print DataPreProcessing().sliceWithTime(timeInterval)
 
 
 
