@@ -34,8 +34,6 @@ class BulletScreen(object):
         # self.timelength = 12306
 
         tempLine=[]
-        #vocabulary=set()
-        vocabulary = {}
         jieba.load_userdict("data/metadata/user_dict.txt")
         for lineNo,line in enumerate(f.readlines()):
             pattern=re.compile("^<d p=\"(.+)\">(.+)</d>")
@@ -49,20 +47,13 @@ class BulletScreen(object):
 
                 if len(temp["text"])>3:
                     tempLine.append(temp)
-                    for item in temp["text"]:
-                        if item not in vocabulary:
-                            vocabulary[item]=0
 
         lines=sorted(tempLine, key= lambda e:(e.__getitem__('time')))
         print  "vocabulary size: %d " % len(vocabulary)
         print  "video comment size: %d " % len(lines)
-        self.store(lines,timelength)
-        return lines,timelength,vocabulary
+        return lines,timelength
 
-    def store(self,lines,timelength):
-        fw = open("data/var/lines", "wb")
-        pickle.dump({"lines":lines,"timelength":timelength},fw)
-        fw.close()
+
 
     def run(self):
         self.load_stop_words()

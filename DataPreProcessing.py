@@ -22,7 +22,7 @@ class DataPreProcessing(object):
 
 
     def sliceWithTime(self,timeInterval):
-        self.lines,timeLength,vocabulary=BulletScreen().run()
+        self.lines,timeLength=BulletScreen().run()
         preTime=0
         lastTime=preTime+timeInterval
         for index in xrange(int(timeLength/timeInterval)):
