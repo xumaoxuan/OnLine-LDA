@@ -7,49 +7,42 @@ from collections import OrderedDict
 
 class DataPreProcessing(object):
     def __init__(self):
-        pass
+        self.docSet=[]
+
+    def addRestComment(self):
+        doc=[]
+        while (len(self.lines) != 0):
+
+                for item in self.lines[0]["text"]:
+                    doc.append(item)
+                self.lines.pop(0)
+
+        self.docSet.append(doc)
+        print len(doc)
 
 
     def sliceWithTime(self,timeInterval):
-        lines,timeLength=BulletScreen().read()
+        self.lines,timeLength,vocabulary=BulletScreen().run()
         preTime=0
         lastTime=preTime+timeInterval
-        docSet=[]
         for index in xrange(int(timeLength/timeInterval)):
             doc =[]
-            docSet.append(doc)
-            while(len(lines)!=0):
-                if lines[0]["time"] <=lastTime:
-                    for item in lines[0]["text"]:
+            while(len(self.lines)!=0):
+                if self.lines[0]["time"] <=lastTime:
+                    for item in self.lines[0]["text"]:
                         doc.append(item)
-                    lines.pop(0)
+                    self.lines.pop(0)
                 else:
                     preTime=lastTime
                     lastTime=preTime+timeInterval
+                    self.docSet.append(doc)
                     break
-            print len(doc)
 
-        return docSet
-
-
-    # def testPrecessing(self,timeInterval):
-    #     docSet = self.sliceWithTime(timeInterval)
-    #     docVector = []
-    #     word2id = OrderedDict()
-    #
-    #     for index, doc in enumerate(docSet):
-    #         for word in doc:
-    #
-    #             if word in word2id:
-    #                 docVector[word2id.keys().index(word)] += 1
-    #             else:
-    #                 docVector.append(1)
-    #                 word2id[word] = 0
-    #         print word2id.keys()
-    #         print docVector
-    #         print len(docVector)
-
-
+            print "doc size %d" % len(doc)
+        print "doc size %d" % len(self.lines)
+        self.addRestComment()
+        print len(self.docSet)
+        return self.docSet
 
 if __name__=="__main__":
     timeInterval=1000

@@ -3,4 +3,5 @@
 /data/.DS_Store
 final3_CreateVocabList_bayes.py
 *.pyc
-
+/data/var/
+/lda.py

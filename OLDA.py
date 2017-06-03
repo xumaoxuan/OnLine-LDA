@@ -7,7 +7,7 @@ import random
 from DataPreProcessing import DataPreProcessing
 from collections import OrderedDict
 class OLDAModel(object):
-    def __init__(self,K,a,b,delta,w,docs_count=1,iter_times=500,top_words_num=10,\
+    def __init__(self,K,a,b,delta,w,docs_count=1,iter_times=1000,top_words_num=10,\
                  thetafile="data/file/theta.txt",phifile="data/file/phi.txt",Bfile="data/file/B.txt",topNDocument="data/file",CL=0.95):
 
         self.thetafile = thetafile
@@ -31,25 +31,25 @@ class OLDAModel(object):
 
     def initialize(self):
 
-
         self.p = np.zeros(self.K)
         self.nw = np.zeros((self.docs_length, self.K))  # V*K
         self.nwsum = np.zeros(self.K)  # 1*K
         self.nd = np.zeros((self.docs_count, self.K))  # M*K
         self.ndsum = np.zeros(self.docs_count)  # 1*M
 
-        # M*doc.size()，文档中词的主题分布  M*V
+
+        #M*V
         self.Z = np.array(
-            [[0 for y in xrange(self.docs_length)] for x in xrange(self.docs_count)])
+            [[0 for y in xrange(len(self.words))] for x in xrange(self.docs_count)])
 
         #随机分配主题
         #initialize each word with topic randomly
         for x in xrange(self.docs_count):  # M*V  #caveat  M = 1
-            self.ndsum[x] = np.sum(self.word2id.values())   # caveat there is only one doc
-            for y in xrange(self.docs_length):
+            self.ndsum[x] = len(self.words)   # caveat there is only one doc
+            for y in xrange(len(self.words)):
                 topic = random.randint(0, self.K - 1)
                 self.Z[x][y] = topic
-                self.nw[y][topic] += 1  # caveat
+                self.nw[self.words[y]][topic] += 1  # caveat
                 self.nd[x][topic] += 1
                 self.nwsum[topic] += 1
 
@@ -87,8 +87,9 @@ class OLDAModel(object):
     def sampling(self, i, j):   #M*V
 
             topic = self.Z[i][j]
+            word = self.words[j]
 
-            self.nw[j][topic] -= 1   #caveat   word=j
+            self.nw[word][topic] -= 1
             self.nd[i][topic] -= 1
             self.nwsum[topic] -= 1
             self.ndsum[i] -= 1
@@ -98,7 +99,7 @@ class OLDAModel(object):
 
             Kalpha = self.K * self.alpha
 
-            self.p = (self.nw[j] + self.beta.T[j]) / (self.nwsum + self.Vbeta) * \
+            self.p = (self.nw[word] + self.beta.T[word]) / (self.nwsum + self.Vbeta) * \
                          (self.nd[i] + self.alpha) / (self.ndsum[i] + Kalpha)
 
 
@@ -110,7 +111,7 @@ class OLDAModel(object):
                 if self.p[topic] > u:
                     break
 
-            self.nw[j][topic] += 1
+            self.nw[word][topic] += 1
             self.nwsum[topic] += 1
             self.nd[i][topic] += 1
             self.ndsum[i] += 1
@@ -120,14 +121,13 @@ class OLDAModel(object):
 
         for x in xrange(self.iter_times):
             for i in xrange(self.docs_count):   #M*V
-                for j in xrange(self.docs_length):
+                for j in xrange(len(self.words)):
                     topic = self.sampling(i,j)
                     self.Z[i][j] = topic
 
 
         #display current Timeslice top-N topic
         self.topNword()
-
         self._B()
         #self._edetect()
 
@@ -198,8 +198,9 @@ class OLDAModel(object):
                     f.write(topN[x][y] + '\t')
                 f.write('\n')
 
-    def save(self):
 
+
+    def save(self):
         #save theta doc-topic distribution
         with open(self.thetafile,'w') as f:
             for x in xrange(self.docs_count):
@@ -226,21 +227,23 @@ class OLDAModel(object):
 
     def process(self,timeInterval):
         docSet = DataPreProcessing().sliceWithTime(timeInterval)
+        self.word2id = OrderedDict()
 
-
-        word2id = OrderedDict()
         print "docsize: %s " % len(docSet)
+        items_idx = 0
         for index, doc in enumerate(docSet):
+            self.words=[]
             self.t=index
             for word in doc:
-                if word in word2id:
-                    word2id[word]+= 1
+                if word in self.word2id:
+                    self.words.append(self.word2id[word])
                 else:
-                    word2id[word] = 1
-
-            self.docs_length = len(word2id)
-            self.word2id=word2id
+                    self.word2id[word] = items_idx
+                    self.words.append(items_idx)
+                    items_idx += 1
+            self.docs_length = len(self.word2id)
             print "doc_length: %s " % self.docs_length
+
             self.initializeBandBeta()
             self.initialize()    #initialize the parameters
             self.estimation()
@@ -255,7 +258,7 @@ class OLDAModel(object):
 
 if __name__=="__main__":
 
-    K=20
+    K=10
     alpha=50/K
     beta=0.1
     delta=1

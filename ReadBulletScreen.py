@@ -1,46 +1,77 @@
 # -*- coding: utf-8 -*-
-import numpy
 import re
+import jieba
 import jieba.posseg as pseg
-import jieba.analyse
 import uniout
+import copy
 
-
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 class BulletScreen(object):
     def __init__(self):
-        self.lines=[]
-        self.timelength=0
+        self.stop_words= set([
+                    " ","the","of","is","and","to","in","that","we","for",\
+                    "an","are","by","be","as","on","with","can","if","from","which","you",
+                    "it","this","then","at","have","all","not","one","has","or","that","什么","姐姐","一个"
+                    ])
+
+
+    def load_stop_words(self,file="data/metadata/stopWords.txt"):
+        f = open(file)
+        content = f.read().decode('utf-8')
+        words = content.split('\n')
+        for w in words:
+            self.stop_words.add(w.strip())
+
 
     def read(self):
 
         f = open("data/1993410.txt", "r")
-        self.timelength = 5640
+        timelength = 5640
         #f = open("data/2152134.txt", "r")
         # self.timelength = 12306
-        jieba.analyse.set_stop_words("data/stopWords.txt")
-        lines = f.readlines()
-        tempLine=[]
 
-        for line in lines:
+        tempLine=[]
+        #vocabulary=set()
+        vocabulary = {}
+        jieba.load_userdict("data/metadata/user_dict.txt")
+        for lineNo,line in enumerate(f.readlines()):
             pattern=re.compile("^<d p=\"(.+)\">(.+)</d>")
             m=pattern.match(line)
             if m:
-                tempLine.append({"time":int(float(m.group(1).split(',')[0])), \
-                                   "text":[word  for word,flag in pseg.cut(m.group(2)) if flag in ["n","ns","v","vn"]]
-                                })
+                temp={"time":int(float(m.group(1).split(',')[0])), \
+                                   "text":[word  for word,flag in pseg.cut(m.group(2))  \
+                                           if word not in self.stop_words and flag not in \
+                                           ["m","w","g","c","o","p","z","q","un","e","r","x","d","t","h","k","y","u","s","uj","ul","r","eng"] ],
+                                   "lineno":lineNo+1}
 
-        for index,item in enumerate(tempLine):
-            if len(item["text"])==0:
-                del(tempLine[index])
+                if len(temp["text"])>3:
+                    tempLine.append(temp)
+                    for item in temp["text"]:
+                        if item not in vocabulary:
+                            vocabulary[item]=0
 
-        self.lines=sorted(tempLine, key= lambda e:(e.__getitem__('time')))
+        lines=sorted(tempLine, key= lambda e:(e.__getitem__('time')))
+        print  "vocabulary size: %d " % len(vocabulary)
+        print  "video comment size: %d " % len(lines)
+        self.store(lines,timelength)
+        return lines,timelength,vocabulary
 
-        return self.lines,self.timelength
+    def store(self,lines,timelength):
+        fw = open("data/var/lines", "wb")
+        pickle.dump({"lines":lines,"timelength":timelength},fw)
+        fw.close()
 
-
+    def run(self):
+        self.load_stop_words()
+        return self.read()
 
 if __name__=="__main__":
-     print ReadBulletScreen().read()
+
+    print BulletScreen().run()
+
 
 
 
