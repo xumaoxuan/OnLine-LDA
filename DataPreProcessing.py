@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
 import numpy as np
 from ReadBulletScreen import BulletScreen
 from collections import OrderedDict
@@ -42,7 +45,15 @@ class DataPreProcessing(object):
         print "doc size %d" % len(self.lines)
         self.addRestComment()
         print len(self.docSet)
+        #self.print_docSet(self.docSet)
         return self.docSet
+
+
+    # def print_docSet(self,docSet):
+    #     with open("data/tmp/data.txt", 'w') as f:
+    #         for item in docSet:
+    #             f.write(" ".join(item))
+    #             #f.write("\n")
 
 if __name__=="__main__":
     timeInterval=1000

@@ -4,3 +4,5 @@
 final3_CreateVocabList_bayes.py
 *.pyc
 /lda.py
+/ldaModel.py
+/data/tmp/

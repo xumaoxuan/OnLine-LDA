@@ -49,7 +49,6 @@ class BulletScreen(object):
                     tempLine.append(temp)
 
         lines=sorted(tempLine, key= lambda e:(e.__getitem__('time')))
-        print  "vocabulary size: %d " % len(vocabulary)
         print  "video comment size: %d " % len(lines)
         return lines,timelength
 
