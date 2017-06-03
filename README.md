@@ -20,7 +20,7 @@
 
 ## Caveat
 
-**This is school project.if you have any question,let me know!**
+*This is school project.If you have any question,let me know!*
 
 ## Author
   WindWard <xuan619@sina.com>
